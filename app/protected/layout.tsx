@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import { DeployButton } from "@/components/deploy-button";
 import { EnvVarWarning } from "@/components/env-var-warning";
 import { AuthButton } from "@/components/auth-button";
@@ -6,11 +8,33 @@ import { hasEnvVars } from "@/lib/utils";
 import Link from "next/link";
 import { Suspense } from "react";
 
-export default function ProtectedLayout({
+export default async function ProtectedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Check if user is authenticated and redirect to appropriate dashboard
+  const supabase = await createClient();
+  const { data: authData } = await supabase.auth.getUser();
+
+  if (authData.user) {
+    const { data: profile } = await supabase
+      .from("users_profile")
+      .select("role")
+      .eq("id", authData.user.id)
+      .single();
+
+    if (profile) {
+      if (profile.role === "SUPERADMIN") {
+        redirect("/dashboard/superadmin");
+      } else if (profile.role === "ADMIN") {
+        redirect("/dashboard/admin");
+      } else if (profile.role === "CASHIER") {
+        redirect("/dashboard/cashier");
+      }
+    }
+  }
+
   return (
     <main className="min-h-screen flex flex-col items-center">
       <div className="flex-1 w-full flex flex-col gap-20 items-center">

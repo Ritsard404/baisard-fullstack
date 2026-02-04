@@ -20,6 +20,7 @@ export function SignUpForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
+  const [fullname, setFullname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
@@ -33,6 +34,12 @@ export function SignUpForm({
     setIsLoading(true);
     setError(null);
 
+    if (!fullname.trim()) {
+      setError("Full name is required");
+      setIsLoading(false);
+      return;
+    }
+
     if (password !== repeatPassword) {
       setError("Passwords do not match");
       setIsLoading(false);
@@ -45,6 +52,9 @@ export function SignUpForm({
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/protected`,
+          data: {
+            fullname: fullname.trim(),
+          },
         },
       });
       if (error) throw error;
@@ -66,6 +76,17 @@ export function SignUpForm({
         <CardContent>
           <form onSubmit={handleSignUp}>
             <div className="flex flex-col gap-6">
+              <div className="grid gap-2">
+                <Label htmlFor="fullname">Full Name</Label>
+                <Input
+                  id="fullname"
+                  type="text"
+                  placeholder="John Doe"
+                  required
+                  value={fullname}
+                  onChange={(e) => setFullname(e.target.value)}
+                />
+              </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
